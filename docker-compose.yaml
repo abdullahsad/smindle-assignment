@@ -1,0 +1,75 @@
+version: "3.7"
+networks:
+    jobtest:
+        driver: bridge
+volumes:
+    pgdatajobtest:
+        driver: local
+    fpm:
+        driver: local
+services:
+    nginx:
+        image: nginx:alpine
+        container_name: jobtest-nginx
+        restart: unless-stopped
+        ports:
+            - 8004:80
+        volumes:
+            - .:/var/www/html
+            - ./docker/default.conf:/etc/nginx/conf.d/default.conf
+            - ./storage/app:/var/www/html/storage/app
+        networks:
+            - jobtest
+        links:
+            - fpm
+    fpm:
+        container_name: jobtest
+        networks:
+            - jobtest
+        volumes:
+            - .:/var/www/html
+        user: root
+        build:
+            context: .
+            dockerfile: ./docker/Dockerfile
+        links:
+            - pgdatajobtest
+            - redis
+
+    pgdatajobtest:
+        image: postgis/postgis:17-3.5
+        container_name: pgdatajobtest
+        restart: always
+        volumes:
+            - ./data/pgsql:/var/lib/postgresql/data
+        environment:
+            POSTGRES_USER: jobtest_user
+            POSTGRES_PASSWORD: AO01SlDF
+            POSTGRES_DB: jobtest_db
+        ports:
+            - 4325:5432
+        networks:
+            - jobtest
+    redis:
+        networks:
+            - jobtest
+        image: redis:7.4
+        container_name: redis-client
+        restart: always
+        ports:
+            - "6004:6379"
+        volumes:
+            - ./data/redis:/data
+    supervisor:
+        container_name: supervisorjobtest
+        networks:
+            - jobtest
+        volumes:
+            - .:/var/www/html
+        build:
+            context: .
+            dockerfile: ./docker/Dockerfile
+        depends_on:
+            - fpm
+        command: supervisord
+        
