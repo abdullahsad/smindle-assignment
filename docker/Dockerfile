@@ -23,26 +23,12 @@ WORKDIR /var/www/html
 # copy necessary files and change permissions
 COPY . /var/www/html
 
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
-
-# install php dependencies
-RUN composer install --no-dev --prefer-dist 
-
-RUN chown -R www-data:www-data /var/www/html/vendor \
-    && chmod -R 775 /var/www/html/vendor
-
 
 ADD docker/app/mainsupervisor.conf /etc/supervisor/conf.d/mainsupervisor.conf
 COPY docker/app/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 COPY docker/app/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/fpm.conf /usr/local/etc/php-fpm.d/www.conf
 
-
-WORKDIR /var/www/html
-
-VOLUME ["/var/www/html/storage/app"]
 
 
 EXPOSE 9000
