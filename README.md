@@ -70,5 +70,10 @@ php artisan migrate
 -   Ensure that Docker is running on your system before executing these commands.
 -   Access the application by navigating to `http://localhost:8004` in your browser.
 -   Modify the `.env` file as needed for your local database, mail, or other configuration.
+-   To run the test get inside the container and run the following command:
+
+```bash
+php artisan test
+```
 
 ---
